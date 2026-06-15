@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>溪美社區後台管理系統</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sage:       #5a8a6a;
+  --sage-d:     #3d6b4f;
+  --sage-l:     #e8f2ec;
+  --terra:      #c1694f;
+  --terra-l:    #fdf0ec;
+  --gold:       #b8860b;
+  --gold-l:     #fdf8ec;
+  --charcoal:   #2c2c2c;
+  --mid:        #666;
+  --muted:      #999;
+  --border:     #e5e5e5;
+  --bg:         #f7f8fa;
+  --white:      #ffffff;
+  --sidebar-w:  240px;
+  --nav-h:      60px;
+  --danger:     #d93025;
+  --danger-l:   #fdecea;
+  --info:       #1a73e8;
+  --info-l:     #e8f0fe;
+  --sh:         0 2px 12px rgba(0,0,0,.08);
+  --sh-lg:      0 8px 32px rgba(0,0,0,.12);
+}
+
+html, body { height: 100%; font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--charcoal); font-size: 14px; }
+
+/* ── LOGIN ── */
+#login-screen {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #2d4a35 0%, #1a2e20 100%);
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+}
+.login-box {
+  background: var(--white); border-radius: 20px; padding: 48px 44px;
+  width: 380px; box-shadow: var(--sh-lg);
+}
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo .icon { font-size: 2.4rem; display: block; margin-bottom: 10px; }
+.login-logo h1 { font-family: 'Noto Serif TC', serif; font-size: 1.2rem; color: var(--charcoal); font-weight: 700; }
+.login-logo p { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+.login-field { margin-bottom: 16px; }
+.login-field label { display: block; font-size: .78rem; font-weight: 700; color: var(--mid); margin-bottom: 6px; letter-spacing: .04em; }
+.login-field input {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: .9rem; font-family: inherit;
+  transition: border-color .2s; outline: none;
+}
+.login-field input:focus { border-color: var(--sage); }
+.login-btn {
+  width: 100%; padding: 13px; background: var(--sage); color: #fff;
+  border: none; border-radius: 10px; font-size: .95rem; font-weight: 700;
+  cursor: pointer; margin-top: 8px; font-family: inherit; transition: background .2s;
+}
+.login-btn:hover { background: var(--sage-d); }
+.login-err { color: var(--danger); font-size: .78rem; text-align: center; margin-top: 10px; min-height: 18px; }
+
+/* ── LAYOUT ── */
+#app { display: none; height: 100%; }
+
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); z-index: 200;
+  background: var(--white); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px; gap: 16px;
+  box-shadow: var(--sh);
+}
+.topbar-brand { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 1rem; color: var(--sage-d); display: flex; align-items: center; gap: 8px; }
+.topbar-brand span { font-size: 1.3rem; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.topbar-user { font-size: .8rem; color: var(--mid); }
+.topbar-logout {
+  padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+  background: none; cursor: pointer; font-size: .78rem; color: var(--mid);
+  font-family: inherit; transition: all .2s;
+}
+.topbar-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+.sidebar {
+  position: fixed; top: var(--nav-h); left: 0; bottom: 0;
+  width: var(--sidebar-w); background: var(--white);
+  border-right: 1px solid var(--border); padding: 20px 12px;
+  overflow-y: auto;
+}
+.sidebar-section { margin-bottom: 8px; }
+.sidebar-label { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 4px 12px 8px; }
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  font-size: .85rem; color: var(--mid); font-weight: 500;
+  transition: all .18s; margin-bottom: 2px;
+}
+.sidebar-item:hover { background: var(--sage-l); color: var(--sage-d); }
+.sidebar-item.active { background: var(--sage-l); color: var(--sage-d); font-weight: 700; }
+.sidebar-item .ico { font-size: 1.1rem; width: 22px; text-align: center; }
+
+.main-content {
+  margin-top: var(--nav-h);
+  margin-left: var(--sidebar-w);
+  padding: 28px 32px;
+  min-height: calc(100vh - var(--nav-h));
+}
+
+/* ── PAGES ── */
+.admin-page { display: none; }
+.admin-page.active { display: block; }
+
+/* ── COMPONENTS ── */
+.page-header { margin-bottom: 28px; }
+.page-header h2 { font-family: 'Noto Serif TC', serif; font-size: 1.4rem; font-weight: 700; color: var(--charcoal); }
+.page-header p { font-size: .82rem; color: var(--muted); margin-top: 4px; }
+
+.card {
+  background: var(--white); border-radius: 16px; padding: 24px;
+  border: 1px solid var(--border); box-shadow: var(--sh); margin-bottom: 20px;
+}
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.card-title { font-weight: 700; font-size: .95rem; color: var(--charcoal); display: flex; align-items: center; gap: 8px; }
+
+/* Buttons */
+.btn { padding: 9px 18px; border-radius: 9px; font-size: .82rem; font-weight: 700; cursor: pointer; font-family: inherit; border: none; transition: all .18s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--sage); color: #fff; }
+.btn-primary:hover { background: var(--sage-d); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #b71c1c; }
+.btn-outline { background: none; border: 1.5px solid var(--border); color: var(--mid); }
+.btn-outline:hover { border-color: var(--sage); color: var(--sage); }
+.btn-sm { padding: 5px 12px; font-size: .75rem; }
+.btn-ghost { background: none; border: none; cursor: pointer; font-family: inherit; font-size: .78rem; color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+.btn-ghost:hover { background: var(--bg); color: var(--charcoal); }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: .78rem; font-weight: 700; color: var(--mid); margin-bottom: 6px; letter-spacing: .04em; }
+.form-label span { color: var(--danger); }
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 10px 13px; border: 1.5px solid var(--border);
+  border-radius: 9px; font-size: .88rem; font-family: inherit;
+  transition: border-color .2s; outline: none; background: var(--white);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--sage); }
+.form-textarea { resize: vertical; min-height: 90px; line-height: 1.7; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 14px; text-align: left; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
+td { padding: 13px 14px; font-size: .84rem; color: var(--charcoal); border-bottom: 1px solid var(--bg); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg); }
+
+/* Badge */
+.badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: .7rem; font-weight: 700; }
+.badge-green { background: var(--sage-l); color: var(--sage-d); }
+.badge-orange { background: var(--terra-l); color: var(--terra); }
+.badge-gold { background: var(--gold-l); color: var(--gold); }
+.badge-blue { background: var(--info-l); color: var(--info); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--white); border-radius: 14px; padding: 20px 22px; border: 1px solid var(--border); }
+.stat-icon { font-size: 1.6rem; margin-bottom: 10px; }
+.stat-num { font-family: 'Noto Serif TC', serif; font-size: 1.8rem; font-weight: 700; color: var(--charcoal); line-height: 1; }
+.stat-label { font-size: .75rem; color: var(--muted); margin-top: 5px; }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 18px; padding: 32px;
+  width: 560px; max-width: 94vw; max-height: 88vh; overflow-y: auto;
+  box-shadow: var(--sh-lg); animation: modalIn .22s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.modal-title { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 1.05rem; }
+.modal-close { font-size: 1.4rem; cursor: pointer; color: var(--muted); background: none; border: none; line-height: 1; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9000;
+  background: var(--charcoal); color: #fff; padding: 12px 20px;
+  border-radius: 10px; font-size: .84rem; font-weight: 500;
+  opacity: 0; transform: translateY(8px); transition: all .3s;
+  pointer-events: none; max-width: 300px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+.empty-state .ico { font-size: 2.8rem; margin-bottom: 12px; }
+.empty-state p { font-size: .88rem; }
+
+/* Gallery grid in admin */
+.gallery-admin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.gallery-thumb {
+  border-radius: 12px; overflow: hidden; border: 2px solid transparent;
+  cursor: pointer; transition: border-color .2s; position: relative;
+  aspect-ratio: 1;
+}
+.gallery-thumb:hover { border-color: var(--sage); }
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-thumb-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.7));
+  color: #fff; font-size: .7rem; padding: 12px 8px 6px; font-weight: 700;
+}
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 32px;
+  text-align: center; cursor: pointer; transition: all .2s; margin-bottom: 16px;
+}
+.upload-area:hover, .upload-area.drag { border-color: var(--sage); background: var(--sage-l); }
+.upload-area .ico { font-size: 2rem; margin-bottom: 8px; }
+.upload-area p { font-size: .82rem; color: var(--muted); }
+
+/* Booking detail */
+.booking-detail { background: var(--bg); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.booking-detail p { font-size: .82rem; color: var(--mid); line-height: 1.8; }
+.booking-detail strong { color: var(--charcoal); }
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; padding: 20px 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: 1fr; }
+  .gallery-admin-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Image preview */
+.img-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-top: 8px; display: none; }
+
+/* Pill tabs */
+.pill-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.pill-tab { padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--border); font-size: .8rem; font-weight: 600; cursor: pointer; color: var(--mid); background: var(--white); transition: all .18s; }
+.pill-tab.active { background: var(--sage); border-color: var(--sage); color: #fff; }
+
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.dot-green { background: #34a853; }
+.dot-orange { background: #fbbc04; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="icon">🌿</span>
+      <h1>溪美社區後台管理</h1>
+      <p>臺南市善化區溪美社區發展協會</p>
+    </div>
+    <div class="login-field">
+      <label>帳號</label>
+      <input type="text" id="inp-user" placeholder="請輸入帳號" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>密碼</label>
+      <input type="password" id="inp-pass" placeholder="請輸入密碼" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">登入後台</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand"><span>🌿</span>溪美後台管理系統</div>
+    <div class="topbar-right">
+      <div class="topbar-user" id="topbar-user"></div>
+      <button class="topbar-logout" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">總覽</div>
+      <div class="sidebar-item active" onclick="showPage('dashboard')">
+        <span class="ico">📊</span>儀表板
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">內容管理</div>
+      <div class="sidebar-item" onclick="showPage('news')">
+        <span class="ico">📢</span>近期動態 / 公告
+      </div>
+      <div class="sidebar-item" onclick="showPage('products')">
+        <span class="ico">🛒</span>產品介紹與價格
+      </div>
+      <div class="sidebar-item" onclick="showPage('gallery')">
+        <span class="ico">🖼️</span>活動剪影相片
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">表單記錄</div>
+      <div class="sidebar-item" onclick="showPage('bookings')">
+        <span class="ico">📋</span>活動預定紀錄
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">系統</div>
+      <div class="sidebar-item" onclick="showPage('settings')">
+        <span class="ico">⚙️</span>帳號設定
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+
+    <!-- ── 儀表板 ── -->
+    <div class="admin-page active" id="page-dashboard">
+      <div class="page-header">
+        <h2>儀表板</h2>
+        <p>溪美社區網站管理總覽</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📢</div>
+          <div class="stat-num" id="stat-news">0</div>
+          <div class="stat-label">近期動態則數</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-num" id="stat-products">6</div>
+          <div class="stat-label">產品項目</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🖼️</div>
+          <div class="stat-num" id="stat-gallery">4</div>
+          <div class="stat-label">活動相片</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-num" id="stat-bookings">0</div>
+          <div class="stat-label">預定申請</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 最新預定申請</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('bookings')">查看全部</button>
+        </div>
+        <div id="dashboard-bookings">
+          <div class="empty-state"><div class="ico">📭</div><p>尚無預定申請</p></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📢 最新動態</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('news')">管理動態</button>
+        </div>
+        <div id="dashboard-news">
+          <div class="empty-state"><div class="ico">📭</div><p>尚無動態公告</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 近期動態 ── -->
+    <div class="admin-page" id="page-news">
+      <div class="page-header">
+        <h2>📢 近期動態 / 公告</h2>
+        <p>管理首頁及關於我們頁面顯示的近期動態卡片</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">動態列表 <span id="news-count" class="badge badge-green">0 則</span></div>
+          <button class="btn btn-primary" onclick="openNewsModal()">＋ 新增動態</button>
+        </div>
+        <div class="table-wrap">
+          <table id="news-table">
+            <thead><tr><th>日期</th><th>標題</th><th>摘要</th><th>連結</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="news-tbody"></tbody>
+          </table>
+        </div>
+        <div id="news-empty" class="empty-state" style="display:none"><div class="ico">📭</div><p>尚無動態，點擊「新增動態」開始建立</p></div>
+      </div>
+    </div>
+
+    <!-- ── 產品介紹 ── -->
+    <div class="admin-page" id="page-products">
+      <div class="page-header">
+        <h2>🛒 產品介紹與價格</h2>
+        <p>管理網站產品介紹頁的商品資訊</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">商品列表</div>
+          <button class="btn btn-primary" onclick="openProductModal()">＋ 新增商品</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>商品名稱</th><th>簡介</th><th>價格</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="prod-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 活動剪影 ── -->
+    <div class="admin-page" id="page-gallery">
+      <div class="page-header">
+        <h2>🖼️ 活動剪影相片管理</h2>
+        <p>管理活動剪影頁面的 2×2 展示相片（最多 4 張）</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">目前展示相片 <span class="badge badge-green" id="gallery-count">4 張</span></div>
+        </div>
+        <div class="gallery-admin-grid" id="gallery-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">上傳 / 更換相片</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">相片位置 <span>*</span></label>
+            <select class="form-select" id="gallery-slot">
+              <option value="0">位置 1 — 左上（社區活動）</option>
+              <option value="1">位置 2 — 右上（農事體驗）</option>
+              <option value="2">位置 3 — 左下（文化傳承）</option>
+              <option value="3">位置 4 — 右下（表揚獲獎）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">分類標題 <span>*</span></label>
+            <input class="form-input" id="gallery-cat" placeholder="例：社區活動">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">說明文字</label>
+          <input class="form-input" id="gallery-desc" placeholder="例：溪美社區年度活動記錄">
+        </div>
+        <div class="upload-area" id="gallery-upload-area" onclick="document.getElementById('gallery-file').click()">
+          <div class="ico">📷</div>
+          <p>點擊選擇相片，或將圖片拖曳到此區域</p>
+          <p style="font-size:.7rem;margin-top:6px">建議尺寸 800×600px 以上，JPG / PNG</p>
+        </div>
+        <input type="file" id="gallery-file" accept="image/*" style="display:none" onchange="previewGallery(this)">
+        <img id="gallery-preview" class="img-preview">
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn btn-primary" onclick="saveGalleryPhoto()">💾 儲存相片</button>
+          <button class="btn btn-outline" onclick="resetGalleryForm()">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 活動預定紀錄 ── -->
+    <div class="admin-page" id="page-bookings">
+      <div class="page-header">
+        <h2>📋 活動預定紀錄</h2>
+        <p>管理從前台表單送出的活動預定申請</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">預定列表 <span id="bookings-count" class="badge badge-green">0 筆</span></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="exportBookings()">📥 匯出 CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="openBookingModal()">＋ 手動新增</button>
+          </div>
+        </div>
+        <div class="pill-tabs">
+          <div class="pill-tab active" onclick="filterBookings('all',this)">全部</div>
+          <div class="pill-tab" onclick="filterBookings('待確認',this)">待確認</div>
+          <div class="pill-tab" onclick="filterBookings('已確認',this)">已確認</div>
+          <div class="pill-tab" onclick="filterBookings('已完成',this)">已完成</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>申請日期</th><th>姓名</th><th>活動</th><th>來訪單位</th><th>聯絡電話</th><th>車輛數</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="bookings-tbody"></tbody>
+          </table>
+        </div>
+        <div id="bookings-empty" class="empty-state"><div class="ico">📭</div><p>尚無預定申請</p></div>
+      </div>
+    </div>
+
+    <!-- ── 帳號設定 ── -->
+    <div class="admin-page" id="page-settings">
+      <div class="page-header">
+        <h2>⚙️ 帳號設定</h2>
+        <p>變更後台登入帳號與密碼</p>
+      </div>
+      <div class="card" style="max-width:480px">
+        <div class="card-header"><div class="card-title">變更密碼</div></div>
+        <div class="form-group">
+          <label class="form-label">目前密碼 <span>*</span></label>
+          <input class="form-input" type="password" id="old-pass" placeholder="請輸入目前密碼">
+        </div>
+        <div class="form-group">
+          <label class="form-label">新密碼 <span>*</span></label>
+          <input class="form-input" type="password" id="new-pass" placeholder="至少 6 個字元">
+        </div>
+        <div class="form-group">
+          <label class="form-label">確認新密碼 <span>*</span></label>
+          <input class="form-input" type="password" id="confirm-pass" placeholder="再次輸入新密碼">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()">💾 變更密碼</button>
+      </div>
+
+      <div class="card" style="max-width:480px">
+        <div class="card-header"><div class="card-title">關於後台</div></div>
+        <p style="font-size:.84rem;color:var(--mid);line-height:1.9">
+          <strong>系統名稱：</strong>溪美社區後台管理系統<br>
+          <strong>版本：</strong>v1.0.0<br>
+          <strong>資料儲存：</strong>瀏覽器本機（localStorage）<br>
+          <strong>說明：</strong>資料儲存於此裝置的瀏覽器中，換裝置或清除瀏覽器資料後需重新輸入。
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- 新增/編輯動態 -->
+<div class="modal-overlay" id="modal-news">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="news-modal-title">新增動態</div>
+      <button class="modal-close" onclick="closeModal('modal-news')">✕</button>
+    </div>
+    <input type="hidden" id="news-edit-idx" value="-1">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">日期 <span>*</span></label>
+        <input class="form-input" type="date" id="news-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">標籤顏色</label>
+        <select class="form-select" id="news-color">
+          <option value="terracotta">橘紅（重要）</option>
+          <option value="sage">草綠（一般）</option>
+          <option value="gold">金黃（公告）</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">標題 <span>*</span></label>
+      <input class="form-input" id="news-title" placeholder="例：🌿 低碳永續之旅 ｜走訪溪美社區">
+    </div>
+    <div class="form-group">
+      <label class="form-label">內容摘要 <span>*</span></label>
+      <textarea class="form-textarea" id="news-content" placeholder="請輸入動態內容說明…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Facebook 連結</label>
+      <input class="form-input" id="news-link" placeholder="https://www.facebook.com/share/p/...">
+      <div class="form-hint">留空則不顯示「閱讀完整內容」連結</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">狀態</label>
+      <select class="form-select" id="news-status">
+        <option value="顯示">顯示</option>
+        <option value="隱藏">隱藏</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-news')">取消</button>
+      <button class="btn btn-primary" onclick="saveNews()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/編輯產品 -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="prod-modal-title">新增商品</div>
+      <button class="modal-close" onclick="closeModal('modal-product')">✕</button>
+    </div>
+    <input type="hidden" id="prod-edit-idx" value="-1">
+    <div class="form-group">
+      <label class="form-label">商品名稱 <span>*</span></label>
+      <input class="form-input" id="prod-name" placeholder="例：溪美精選黑糖產品">
+    </div>
+    <div class="form-group">
+      <label class="form-label">商品簡介 <span>*</span></label>
+      <textarea class="form-textarea" id="prod-desc" placeholder="請輸入商品描述…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">商品特色（每行一項）</label>
+      <textarea class="form-textarea" id="prod-features" placeholder="100% 善化在地甘蔗原料&#10;傳統明火慢熬，無漂白&#10;富含天然礦物質" style="min-height:100px"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">價格顯示</label>
+        <input class="form-input" id="prod-price" placeholder="例：NT$250 / 瓶">
+      </div>
+      <div class="form-group">
+        <label class="form-label">狀態</label>
+        <select class="form-select" id="prod-status">
+          <option value="販售中">販售中</option>
+          <option value="缺貨中">缺貨中</option>
+          <option value="已下架">已下架</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-product')">取消</button>
+      <button class="btn btn-primary" onclick="saveProduct()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/編輯預定 -->
+<div class="modal-overlay" id="modal-booking">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="booking-modal-title">手動新增預定</div>
+      <button class="modal-close" onclick="closeModal('modal-booking')">✕</button>
+    </div>
+    <input type="hidden" id="booking-edit-idx" value="-1">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">姓名 <span>*</span></label>
+        <input class="form-input" id="bk-name" placeholder="申請人姓名">
+      </div>
+      <div class="form-group">
+        <label class="form-label">聯絡電話 <span>*</span></label>
+        <input class="form-input" id="bk-phone" placeholder="0912-345-678">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">選擇活動</label>
+      <select class="form-select" id="bk-activity">
+        <option>農事體驗・芝麻採收</option>
+        <option>文化傳承・手炒黑糖</option>
+        <option>社區走讀導覽</option>
+        <option>食農教育課程</option>
+        <option>其他（請備註）</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">來訪單位</label>
+        <input class="form-input" id="bk-org" placeholder="學校、公司、團體名稱">
+      </div>
+      <div class="form-group">
+        <label class="form-label">來訪車輛數</label>
+        <select class="form-select" id="bk-vehicles">
+          <option>1 輛</option><option>2 輛</option><option>3 輛</option>
+          <option>4 輛</option><option>5 輛以上</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">備註</label>
+      <textarea class="form-textarea" id="bk-note" placeholder="特殊需求或補充說明…" style="min-height:70px"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">申請日期</label>
+        <input class="form-input" type="date" id="bk-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">狀態</label>
+        <select class="form-select" id="bk-status">
+          <option>待確認</option><option>已確認</option><option>已完成</option><option>已取消</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-booking')">取消</button>
+      <button class="btn btn-primary" onclick="saveBooking()">💾 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 預定詳情 -->
+<div class="modal-overlay" id="modal-booking-detail">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title">預定詳情</div>
+      <button class="modal-close" onclick="closeModal('modal-booking-detail')">✕</button>
+    </div>
+    <div id="booking-detail-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-booking-detail')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA (localStorage)
+// ══════════════════════════════════════════
+const KEYS = { auth:'ximei_auth', users:'ximei_users', news:'ximei_news', products:'ximei_products', gallery:'ximei_gallery', bookings:'ximei_bookings' };
+
+function load(key){ try{ return JSON.parse(localStorage.getItem(key)||'null') }catch(e){return null} }
+function save(key,val){ localStorage.setItem(key, JSON.stringify(val)) }
+
+// Default admin credentials
+function getUsers(){
+  return load(KEYS.users) || [{ username:'admin', password:'ximei2025' }];
+}
+
+// Default products
+function getProducts(){
+  return load(KEYS.products) || [
+    { name:'溪美精選黑糖產品', desc:'以善化在地甘蔗為原料，沿用百年傳統製糖工序，無添加精製。深邃焦香、層次豐富，富含鐵質與礦物質。', features:'100% 善化在地甘蔗原料\n傳統明火慢熬，無漂白、無精製\n富含鐵、鈣、鉀等天然礦物質\n適合煮薑湯、甜品、料理提味', price:'', status:'販售中' },
+    { name:'溪美葛鬱金', desc:'葛鬱金（竹芋）為臺灣傳統養生食材，可製成葛鬱金粉，作為健康澱粉替代品，質地細緻、口感滑順。', features:'高純度葛鬱金粉，質地細白滑順\n適合腸胃不適、體質調養者\n可煮糊、勾芡、製作點心', price:'', status:'販售中' },
+    { name:'溪美胡麻油/胡麻清油', desc:'採用嚴選黑芝麻，完整保留芝麻天然香氣與營養成分，色澤深琥珀、香氣濃郁持久。', features:'嚴選在地黑芝麻\n未精製、未脫色，保留天然油脂\n富含芝麻素、維生素E\n適合坐月子補養、料理增香', price:'', status:'販售中' },
+    { name:'溪美胡麻油/胡麻清油禮盒', desc:'將溪美社區最具代表性的好物搭配精美禮盒，是節日伴手禮、企業致贈的絕佳選擇。', features:'含：胡麻油 × 1 ＋ 胡麻清油 × 1\n精裝提袋包裝，適合送禮\n另有大容量包裝可選擇', price:'', status:'販售中' },
+    { name:'溪美芝麻糖／芝麻粉', desc:'精選優質黑白芝麻，以傳統手工炒製，保留芝麻天然濃郁香氣。芝麻糖口感酥脆甜而不膩。', features:'精選黑白芝麻，傳統手工炒製\n無人工香料、無防腐劑\n芝麻糖：酥脆香甜，古早零食風味\n芝麻粉：細緻滑順，沖泡/料理兩用', price:'', status:'販售中' },
+    { name:'溪美紫蘇／麻油沾伴醬', desc:'以溪美在地種植紫蘇為主材料，結合頂級冷壓胡麻油精心調製，適合火鍋、涼拌、拌飯麵。', features:'在地種植紫蘇，風味清新獨特\n結合溪美冷壓胡麻油，香氣醇厚\n適合火鍋、涼拌、生魚片、拌飯麵\n無防腐劑、無人工色素', price:'', status:'販售中' },
+  ];
+}
+
+// Default gallery slots
+function getGallery(){
+  return load(KEYS.gallery) || [
+    { cat:'社區活動', desc:'溪美社區年度活動記錄', src:'' },
+    { cat:'農事體驗', desc:'食農教育・田間體驗活動', src:'' },
+    { cat:'文化傳承', desc:'在地文化・工藝傳習記錄', src:'' },
+    { cat:'表揚獲獎', desc:'社區榮耀・歷年獲獎紀錄', src:'' },
+  ];
+}
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+function doLogin(){
+  const u = document.getElementById('inp-user').value.trim();
+  const p = document.getElementById('inp-pass').value;
+  const users = getUsers();
+  const match = users.find(x => x.username === u && x.password === p);
+  if(!match){
+    document.getElementById('login-err').textContent = '帳號或密碼錯誤，請再試一次';
+    return;
+  }
+  save(KEYS.auth, { username: u, loginAt: Date.now() });
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('topbar-user').textContent = '👤 ' + u;
+  initApp();
+}
+
+function doLogout(){
+  localStorage.removeItem(KEYS.auth);
+  location.reload();
+}
+
+document.getElementById('inp-pass').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+
+// Check existing session
+(function(){
+  const auth = load(KEYS.auth);
+  if(auth && (Date.now() - auth.loginAt < 8 * 3600 * 1000)){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('topbar-user').textContent = '👤 ' + auth.username;
+    initApp();
+  }
+})();
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const items = document.querySelectorAll('.sidebar-item');
+  items.forEach(i => { if(i.getAttribute('onclick')?.includes("'"+id+"'")) i.classList.add('active'); });
+  if(id === 'news') renderNews();
+  if(id === 'products') renderProducts();
+  if(id === 'gallery') renderGallery();
+  if(id === 'bookings') renderBookings();
+  if(id === 'dashboard') renderDashboard();
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+function initApp(){
+  renderDashboard();
+  renderNews();
+  renderProducts();
+  renderGallery();
+  renderBookings();
+  // Set today as default date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('news-date').value = today;
+  document.getElementById('bk-date').value = today;
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard(){
+  const news = load(KEYS.news) || [];
+  const bookings = load(KEYS.bookings) || [];
+  document.getElementById('stat-news').textContent = news.filter(n=>n.status==='顯示').length;
+  document.getElementById('stat-bookings').textContent = bookings.length;
+
+  // Latest bookings
+  const dbEl = document.getElementById('dashboard-bookings');
+  if(bookings.length === 0){
+    dbEl.innerHTML = '<div class="empty-state"><div class="ico">📭</div><p>尚無預定申請</p></div>';
+  } else {
+    const latest = bookings.slice(-3).reverse();
+    dbEl.innerHTML = '<div class="table-wrap"><table><thead><tr><th>日期</th><th>姓名</th><th>活動</th><th>狀態</th></tr></thead><tbody>'
+      + latest.map(b=>`<tr><td>${b.date}</td><td>${b.name}</td><td>${b.activity}</td><td>${statusBadge(b.status)}</td></tr>`).join('')
+      + '</tbody></table></div>';
+  }
+
+  // Latest news
+  const dnEl = document.getElementById('dashboard-news');
+  const visNews = news.filter(n=>n.status==='顯示').slice(-3).reverse();
+  if(visNews.length === 0){
+    dnEl.innerHTML = '<div class="empty-state"><div class="ico">📭</div><p>尚無動態公告</p></div>';
+  } else {
+    dnEl.innerHTML = visNews.map(n=>`<div style="padding:12px 0;border-bottom:1px solid var(--bg)">
+      <div style="font-size:.72rem;color:var(--terra);font-weight:700;margin-bottom:3px">${fmtDate(n.date)}</div>
+      <div style="font-size:.88rem;font-weight:600">${n.title}</div>
+    </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════
+//  NEWS
+// ══════════════════════════════════════════
+let newsData = [];
+function renderNews(){
+  newsData = load(KEYS.news) || [];
+  const tbody = document.getElementById('news-tbody');
+  const empty = document.getElementById('news-empty');
+  document.getElementById('news-count').textContent = newsData.length + ' 則';
+  if(newsData.length === 0){
+    tbody.innerHTML = '';
+    document.getElementById('news-table').style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  document.getElementById('news-table').style.display = '';
+  empty.style.display = 'none';
+  tbody.innerHTML = [...newsData].reverse().map((n,ri)=>{
+    const i = newsData.length - 1 - ri;
+    return `<tr>
+      <td><span style="font-size:.78rem;font-weight:700;color:var(--${n.color||'terracotta'})">${fmtDate(n.date)}</span></td>
+      <td style="max-width:200px"><strong>${n.title}</strong></td>
+      <td style="max-width:220px;font-size:.78rem;color:var(--mid)">${n.content.slice(0,60)}${n.content.length>60?'…':''}</td>
+      <td>${n.link ? `<a href="${n.link}" target="_blank" style="font-size:.75rem;color:var(--info)">🔗 連結</a>` : '<span style="color:var(--muted);font-size:.75rem">無</span>'}</td>
+      <td>${n.status==='顯示'?'<span class="badge badge-green">顯示</span>':'<span class="badge badge-orange">隱藏</span>'}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="editNews(${i})" style="margin-right:4px">編輯</button><button class="btn btn-sm" style="background:var(--danger-l);color:var(--danger)" onclick="deleteNews(${i})">刪除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openNewsModal(idx=-1){
+  document.getElementById('news-edit-idx').value = idx;
+  document.getElementById('news-modal-title').textContent = idx === -1 ? '新增動態' : '編輯動態';
+  if(idx >= 0){
+    const n = newsData[idx];
+    document.getElementById('news-date').value = n.date;
+    document.getElementById('news-color').value = n.color || 'terracotta';
+    document.getElementById('news-title').value = n.title;
+    document.getElementById('news-content').value = n.content;
+    document.getElementById('news-link').value = n.link || '';
+    document.getElementById('news-status').value = n.status;
+  } else {
+    document.getElementById('news-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('news-color').value = 'terracotta';
+    document.getElementById('news-title').value = '';
+    document.getElementById('news-content').value = '';
+    document.getElementById('news-link').value = '';
+    document.getElementById('news-status').value = '顯示';
+  }
+  openModal('modal-news');
+}
+
+function editNews(i){ openNewsModal(i); }
+
+function saveNews(){
+  const title = document.getElementById('news-title').value.trim();
+  const content = document.getElementById('news-content').value.trim();
+  if(!title || !content){ toast('⚠️ 請填寫標題與內容'); return; }
+  const item = {
+    date: document.getElementById('news-date').value,
+    color: document.getElementById('news-color').value,
+    title, content,
+    link: document.getElementById('news-link').value.trim(),
+    status: document.getElementById('news-status').value,
+  };
+  const idx = parseInt(document.getElementById('news-edit-idx').value);
+  newsData = load(KEYS.news) || [];
+  if(idx >= 0) newsData[idx] = item; else newsData.push(item);
+  save(KEYS.news, newsData);
+  closeModal('modal-news');
+  renderNews();
+  toast('✅ 動態已儲存');
+}
+
+function deleteNews(i){
+  if(!confirm('確定要刪除這則動態嗎？')) return;
+  newsData.splice(i, 1);
+  save(KEYS.news, newsData);
+  renderNews();
+  toast('🗑️ 已刪除');
+}
+
+// ══════════════════════════════════════════
+//  PRODUCTS
+// ══════════════════════════════════════════
+let prodData = [];
+function renderProducts(){
+  prodData = getProducts();
+  const tbody = document.getElementById('prod-tbody');
+  tbody.innerHTML = prodData.map((p,i)=>`<tr>
+    <td style="color:var(--muted);font-size:.78rem">${i+1}</td>
+    <td><strong>${p.name}</strong></td>
+    <td style="max-width:200px;font-size:.78rem;color:var(--mid)">${p.desc.slice(0,50)}…</td>
+    <td style="font-size:.82rem">${p.price||'<span style="color:var(--muted)">未設定</span>'}</td>
+    <td>${statusBadgeProd(p.status)}</td>
+    <td><button class="btn btn-outline btn-sm" onclick="editProduct(${i})" style="margin-right:4px">編輯</button></td>
+  </tr>`).join('');
+}
+
+function openProductModal(idx=-1){
+  document.getElementById('prod-edit-idx').value = idx;
+  document.getElementById('prod-modal-title').textContent = idx === -1 ? '新增商品' : '編輯商品';
+  if(idx >= 0){
+    const p = prodData[idx];
+    document.getElementById('prod-name').value = p.name;
+    document.getElementById('prod-desc').value = p.desc;
+    document.getElementById('prod-features').value = p.features || '';
+    document.getElementById('prod-price').value = p.price || '';
+    document.getElementById('prod-status').value = p.status;
+  } else {
+    ['prod-name','prod-desc','prod-features','prod-price'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('prod-status').value = '販售中';
+  }
+  openModal('modal-product');
+}
+
+function editProduct(i){ openProductModal(i); }
+
+function saveProduct(){
+  const name = document.getElementById('prod-name').value.trim();
+  const desc = document.getElementById('prod-desc').value.trim();
+  if(!name || !desc){ toast('⚠️ 請填寫商品名稱與簡介'); return; }
+  const item = {
+    name, desc,
+    features: document.getElementById('prod-features').value.trim(),
+    price: document.getElementById('prod-price').value.trim(),
+    status: document.getElementById('prod-status').value,
+  };
+  const idx = parseInt(document.getElementById('prod-edit-idx').value);
+  prodData = getProducts();
+  if(idx >= 0) prodData[idx] = item; else prodData.push(item);
+  save(KEYS.products, prodData);
+  closeModal('modal-product');
+  renderProducts();
+  toast('✅ 商品資料已儲存');
+}
+
+// ══════════════════════════════════════════
+//  GALLERY
+// ══════════════════════════════════════════
+let galleryData = [];
+function renderGallery(){
+  galleryData = getGallery();
+  const grid = document.getElementById('gallery-grid');
+  grid.innerHTML = galleryData.map((g,i)=>`
+    <div class="gallery-thumb" onclick="selectGallerySlot(${i})">
+      ${g.src
+        ? `<img src="${g.src}" alt="${g.cat}">`
+        : `<div style="width:100%;height:100%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--muted)"><span style="font-size:1.8rem">📷</span><span style="font-size:.72rem">尚未上傳</span></div>`}
+      <div class="gallery-thumb-label">${g.cat}</div>
+    </div>
+  `).join('');
+}
+
+function selectGallerySlot(i){
+  document.getElementById('gallery-slot').value = i;
+  document.getElementById('gallery-cat').value = galleryData[i].cat;
+  document.getElementById('gallery-desc').value = galleryData[i].desc;
+  document.getElementById('gallery-preview').style.display = 'none';
+  document.getElementById('gallery-preview').src = '';
+}
+
+function previewGallery(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('gallery-preview');
+    prev.src = e.target.result;
+    prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveGalleryPhoto(){
+  const slot = parseInt(document.getElementById('gallery-slot').value);
+  const cat = document.getElementById('gallery-cat').value.trim();
+  const desc = document.getElementById('gallery-desc').value.trim();
+  const preview = document.getElementById('gallery-preview');
+  if(!cat){ toast('⚠️ 請填寫分類標題'); return; }
+  galleryData = getGallery();
+  galleryData[slot].cat = cat;
+  galleryData[slot].desc = desc;
+  if(preview.src && preview.src !== window.location.href){
+    galleryData[slot].src = preview.src;
+  }
+  save(KEYS.gallery, galleryData);
+  renderGallery();
+  resetGalleryForm();
+  toast('✅ 相片資料已儲存');
+}
+
+function resetGalleryForm(){
+  document.getElementById('gallery-file').value = '';
+  document.getElementById('gallery-preview').style.display = 'none';
+  document.getElementById('gallery-preview').src = '';
+}
+
+// Drag-drop gallery upload
+const uploadArea = document.getElementById('gallery-upload-area');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault(); uploadArea.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if(!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const prev = document.getElementById('gallery-preview');
+    prev.src = ev.target.result;
+    prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+// ══════════════════════════════════════════
+//  BOOKINGS
+// ══════════════════════════════════════════
+let bookingsData = [];
+let bookingFilter = 'all';
+
+function renderBookings(filter){
+  if(filter) bookingFilter = filter;
+  bookingsData = load(KEYS.bookings) || [];
+  const filtered = bookingFilter === 'all' ? bookingsData : bookingsData.filter(b=>b.status===bookingFilter);
+  document.getElementById('bookings-count').textContent = bookingsData.length + ' 筆';
+  const tbody = document.getElementById('bookings-tbody');
+  const empty = document.getElementById('bookings-empty');
+  if(filtered.length === 0){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = [...filtered].reverse().map((b,ri)=>{
+    const i = bookingsData.indexOf(b);
+    return `<tr>
+      <td style="font-size:.78rem">${b.date}</td>
+      <td><strong>${b.name}</strong></td>
+      <td style="font-size:.82rem">${b.activity}</td>
+      <td style="font-size:.82rem">${b.org||'—'}</td>
+      <td style="font-size:.82rem">${b.phone}</td>
+      <td style="font-size:.82rem">${b.vehicles}</td>
+      <td>${statusBadge(b.status)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-outline btn-sm" onclick="viewBooking(${i})" style="margin-right:4px">詳情</button>
+        <button class="btn btn-sm" style="background:var(--danger-l);color:var(--danger)" onclick="deleteBooking(${i})">刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterBookings(f, el){
+  document.querySelectorAll('.pill-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderBookings(f);
+}
+
+function openBookingModal(idx=-1){
+  document.getElementById('booking-edit-idx').value = idx;
+  document.getElementById('booking-modal-title').textContent = idx === -1 ? '手動新增預定' : '編輯預定';
+  if(idx >= 0){
+    const b = bookingsData[idx];
+    document.getElementById('bk-name').value = b.name;
+    document.getElementById('bk-phone').value = b.phone;
+    document.getElementById('bk-activity').value = b.activity;
+    document.getElementById('bk-org').value = b.org || '';
+    document.getElementById('bk-vehicles').value = b.vehicles;
+    document.getElementById('bk-note').value = b.note || '';
+    document.getElementById('bk-date').value = b.date;
+    document.getElementById('bk-status').value = b.status;
+  } else {
+    ['bk-name','bk-phone','bk-org','bk-note'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('bk-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('bk-status').value = '待確認';
+  }
+  openModal('modal-booking');
+}
+
+function saveBooking(){
+  const name = document.getElementById('bk-name').value.trim();
+  const phone = document.getElementById('bk-phone').value.trim();
+  if(!name || !phone){ toast('⚠️ 請填寫姓名與聯絡電話'); return; }
+  const item = {
+    name, phone,
+    activity: document.getElementById('bk-activity').value,
+    org: document.getElementById('bk-org').value.trim(),
+    vehicles: document.getElementById('bk-vehicles').value,
+    note: document.getElementById('bk-note').value.trim(),
+    date: document.getElementById('bk-date').value,
+    status: document.getElementById('bk-status').value,
+  };
+  bookingsData = load(KEYS.bookings) || [];
+  const idx = parseInt(document.getElementById('booking-edit-idx').value);
+  if(idx >= 0) bookingsData[idx] = item; else bookingsData.push(item);
+  save(KEYS.bookings, bookingsData);
+  closeModal('modal-booking');
+  renderBookings();
+  toast('✅ 預定紀錄已儲存');
+}
+
+function viewBooking(i){
+  const b = bookingsData[i];
+  document.getElementById('booking-detail-content').innerHTML = `
+    <div class="booking-detail"><p>
+      <strong>申請日期：</strong>${b.date}<br>
+      <strong>姓名：</strong>${b.name}<br>
+      <strong>聯絡電話：</strong>${b.phone}<br>
+      <strong>選擇活動：</strong>${b.activity}<br>
+      <strong>來訪單位：</strong>${b.org||'—'}<br>
+      <strong>車輛數：</strong>${b.vehicles}<br>
+      <strong>備註：</strong>${b.note||'—'}<br>
+      <strong>狀態：</strong>${statusBadge(b.status)}
+    </p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="changeBookingStatus(${i},'已確認')">✅ 標記已確認</button>
+      <button class="btn btn-outline btn-sm" onclick="changeBookingStatus(${i},'已完成')">🏁 標記已完成</button>
+      <button class="btn btn-sm" style="background:var(--danger-l);color:var(--danger)" onclick="changeBookingStatus(${i},'已取消')">取消</button>
+    </div>
+  `;
+  openModal('modal-booking-detail');
+}
+
+function changeBookingStatus(i, status){
+  bookingsData = load(KEYS.bookings) || [];
+  bookingsData[i].status = status;
+  save(KEYS.bookings, bookingsData);
+  closeModal('modal-booking-detail');
+  renderBookings();
+  toast('✅ 狀態已更新：' + status);
+}
+
+function deleteBooking(i){
+  if(!confirm('確定要刪除這筆預定紀錄嗎？')) return;
+  bookingsData.splice(i,1);
+  save(KEYS.bookings, bookingsData);
+  renderBookings();
+  toast('🗑️ 已刪除');
+}
+
+function exportBookings(){
+  bookingsData = load(KEYS.bookings) || [];
+  if(!bookingsData.length){ toast('⚠️ 尚無預定紀錄'); return; }
+  const header = ['申請日期','姓名','聯絡電話','活動','來訪單位','車輛數','備註','狀態'];
+  const rows = bookingsData.map(b=>[b.date,b.name,b.phone,b.activity,b.org||'',b.vehicles,b.note||'',b.status].map(v=>`"${v}"`).join(','));
+  const csv = '\uFEFF' + [header.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = '溪美預定紀錄.csv'; a.click();
+  toast('📥 CSV 已下載');
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════
+function changePassword(){
+  const old = document.getElementById('old-pass').value;
+  const nw = document.getElementById('new-pass').value;
+  const cf = document.getElementById('confirm-pass').value;
+  const auth = load(KEYS.auth);
+  const users = getUsers();
+  const user = users.find(u => u.username === auth?.username);
+  if(!user || user.password !== old){ toast('⚠️ 目前密碼錯誤'); return; }
+  if(nw.length < 6){ toast('⚠️ 新密碼至少 6 個字元'); return; }
+  if(nw !== cf){ toast('⚠️ 兩次密碼不一致'); return; }
+  user.password = nw;
+  save(KEYS.users, users);
+  toast('✅ 密碼已變更，請重新登入');
+  setTimeout(doLogout, 1800);
+}
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click', e=>{ if(e.target===el) el.classList.remove('open'); });
+});
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+function fmtDate(str){
+  if(!str) return '';
+  return str.replace(/-/g, '.');
+}
+
+function statusBadge(s){
+  const map = { '待確認':'badge-orange','已確認':'badge-blue','已完成':'badge-green','已取消':'badge-orange' };
+  return `<span class="badge ${map[s]||'badge-orange'}">${s}</span>`;
+}
+
+function statusBadgeProd(s){
+  const map = { '販售中':'badge-green','缺貨中':'badge-orange','已下架':'badge-orange' };
+  return `<span class="badge ${map[s]||'badge-orange'}">${s}</span>`;
+}
+</script>
+</body>
+</html>
